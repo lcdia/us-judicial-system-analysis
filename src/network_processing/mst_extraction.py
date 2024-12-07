@@ -43,14 +43,14 @@ for _, row in (pbar := tqdm(partitions.iterrows(), total=len(partitions))):
         pbar.set_postfix_str(f'filtering edges {partition_id}')
         
         # Filter edges belonging to the current partition nodes using Dask
-        ddf = dd.read_csv('../../data/processed/coupling/community/edges.csv.gz', sep=';', compression='gzip')
-        dfSubGraph = ddf[ddf['src'].isin(nodes) & ddf['dst'].isin(nodes)]
+        ddf = dd.read_csv('../../data/processed/coupling/glcc.edgelist.gz', sep=';', compression='gzip', names=['source', 'target', 'weight'], header=None)
+        dfSubGraph = ddf[ddf['source'].isin(nodes) & ddf['target'].isin(nodes)]
         dfSubGraph = dfSubGraph.compute()  # Trigger computation to convert Dask DataFrame to Pandas DataFrame
 
         pbar.set_postfix_str(f'creating graph {partition_id}')
         
         # Create NetworkX graph from filtered edges
-        G = nx.from_pandas_edgelist(dfSubGraph, "src", "dst", ["weight"])
+        G = nx.from_pandas_edgelist(dfSubGraph, "source", "target", ["weight"])
         pickle.dump(dfSubGraph, open(f'../../data/processed/coupling/community/{partition_id}/subgraph.pickle', 'wb'))
         del dfSubGraph
 
